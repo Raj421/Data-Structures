@@ -1,6 +1,22 @@
 class SegmentTree {
     static int tree[];
 
+    public static void main(String agrs[]) {
+        int[] arr = { 1, 3, 2, -2, 4, 5 };
+        int n = arr.length;
+
+        new SegmentTree(arr, n);
+        System.out.println("Minimum: " + query(tree, 0, 0, n - 1, 0, 5));
+        updateTree(tree, 0, 0, n - 1, 5, -50);
+        System.out.println("Minimum After update: " + query(tree, 0, 0, n - 1, 4,
+                4));
+
+        // updateRange(tree, 0, 0, n - 1, 0, 0, -100);
+        // System.out.println("Minimum After update: " + query(tree, 0, 0, n - 1, 0,
+        // 5));
+
+    }
+
     static int getMid(int start, int end) {
         return start + (end - start) / 2;
     }
@@ -16,7 +32,7 @@ class SegmentTree {
         int max_size = 4 * n;
         tree = new int[max_size];
 
-        constructStUtil(arr, 0, n - 1, 0);
+        constructSTree(arr, 0, n - 1, 0);
     }
 
     /*
@@ -24,14 +40,14 @@ class SegmentTree {
      * ss & se --> Starting and ending indexes of the segment represented by current
      * node, i.e., st[si]
      */
-    int constructStUtil(int[] arr, int ss, int se, int si) {
+    int constructSTree(int[] arr, int ss, int se, int si) {
         if (ss == se) {
             tree[si] = arr[ss];
             return arr[ss];
         }
 
         int mid = getMid(ss, se);
-        tree[si] = Math.min(constructStUtil(arr, ss, mid, si * 2 + 1), constructStUtil(arr, mid + 1, se, si * 2 + 2));
+        tree[si] = Math.min(constructSTree(arr, ss, mid, si * 2 + 1), constructSTree(arr, mid + 1, se, si * 2 + 2));
         return tree[si];
     }
 
@@ -54,14 +70,44 @@ class SegmentTree {
         return Math.min(leftMin, rightMin);
     }
 
-    public static void main(String agrs[]) {
-        int[] arr = { 1, 3, 2, -2, 4, 5 };
-        int n = arr.length;
+    static void updateTree(int[] tree, int index, int start, int end, int pos, int value) {
+        // No Overlap
+        if (pos < start || pos > end)
+            return;
 
-        System.out.println("Hi");
-        new SegmentTree(arr, n);
-        System.out.println("Hi");
-        System.out.println("Minimum: " + query(tree, 0, 0, n - 1, 0, 5));
+        // Reached leaf node
+        if (start == end) {
+            tree[index] = value;
+            return;
+        }
+
+        // Partial Overlap
+        int mid = getMid(start, end);
+        updateTree(tree, 2 * index + 1, start, mid, pos, value);
+        updateTree(tree, 2 * index + 2, mid + 1, end, pos, value);
+        tree[index] = Math.min(tree[2 * index + 1], tree[2 * index + 2]);
+        return;
+    }
+
+    // Range update = increment every value in range rs, re by a value v)
+
+    static void updateRange(int[] tree, int index, int start, int end, int rs, int re, int value) {
+        // No Overlap
+        if (rs > end || re < start)
+            return;
+
+        // Reached leaf node
+        if (start == end) {
+            tree[index] += value;
+            return;
+        }
+
+        // Lying in the range
+        int mid = getMid(start, end);
+        updateRange(tree, 2 * index + 1, start, mid, rs, re, value);
+        updateRange(tree, 2 * index + 2, mid + 1, end, rs, re, value);
+        tree[index] = Math.min(tree[2 * index + 1], tree[2 * index + 2]);
+        return;
     }
 
 }
